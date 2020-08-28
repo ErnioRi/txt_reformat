@@ -14,4 +14,8 @@ void wtrget_kv_info(map<string, list<string>>& dst, string src, infoFormat info_
 
 void write_list_to_file(string filepath, list<string> cmd_list);
 
+list<string> flush_fill_list (map<string, list<string>> in_config_map, list<list<string>> in_temple_list);
+
+list<string> cluster_fill_list (map<string, list<string>> in_config_map, list<list<string>> in_temple_list);
+
 #endif // NEW_METHOD_H_INCLUDED
