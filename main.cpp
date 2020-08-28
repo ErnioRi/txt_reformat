@@ -1,11 +1,8 @@
-#include <map>
-#include <list>
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <cstring>
-#include <sstream>
-#include <vector>
+
+#include "head_file.h"
+#include "new_struct.h"
+#include "new_method.h"
+
 using namespace std;
 //-d -s -a
 
@@ -18,59 +15,6 @@ const string temple_value_split = "temple_value_split";
 const string config_flag = "config_flag";
 const string comment_flag = "comment_flag";
 const string write_flag = "write_flag";
-
-struct wtrlist{
-    int length;
-    string* data;
-};
-
-struct configInfo{
-    list<string> config_content;
-    int cur_idx;
-};
-
-class infoFormat{
-public:
-    string kv_split;
-    string value_split;
-    infoFormat(string in_kv_split,string in_value_split)
-        :kv_split(in_kv_split)
-        ,value_split(in_value_split)
-    {}
-    ~infoFormat(){}
-};
-
-int wtrsprintf(string& temple, string param){
-    auto position = temple.find("#");
-    if(position != string::npos){
-        temple = temple.substr(0,position) + param + temple.substr(position + 1);
-    }
-    return 0;
-}
-
-list<string> wtrsplit_string(string src, string key){
-    list<string> res;
-    auto pos = string::npos;
-    while((pos = src.find(key)) != string::npos){
-        res.push_back(src.substr(0,pos));
-        src = src.substr(pos + key.length());
-    }
-    res.push_back(src);
-    return res;
-}
-
-void wtrget_kv_info(map<string, list<string>>& dst, string src, infoFormat info_format){
-    auto pos = string::npos;
-    string key;
-    list<string> value;
-    if((pos = src.find(info_format.kv_split)) != string::npos){
-        key = src.substr(0, pos);
-        string tr_value = src.substr(pos + info_format.kv_split.length());
-        value = wtrsplit_string(tr_value, info_format.value_split);
-        dst[key] = value;
-    }
-}
-
 
 
 list<string> fill_list (map<string, list<string>> in_config_map, list<list<string>> in_temple_list){
@@ -193,18 +137,6 @@ list<string> fill_list (map<string, list<string>> in_config_map, list<list<strin
     return res;
 }
 
-void write_file(string filepath, list<string> cmd_list){
-    fstream outfile;
-    outfile.open(filepath.c_str(), ios::out);   //每次写都定位的文件结尾，不会丢失原来的内容，用out则会丢失原来的内容
-    if(!outfile.is_open ()){
-        cout << "Open file failure" << endl;
-    }else{
-        for(auto it:cmd_list){
-            outfile << it << endl;  //在result.txt中写入结果
-        }
-    }
-    outfile.close();
-}
 
 int main(int opt, char** content){
     // attention
@@ -346,7 +278,7 @@ int main(int opt, char** content){
                 printf("\n start fill\n\n");
                 list<string> txt_list = fill_list(config_map, temple_list);
                 printf("\n have filt!\n\n");
-                write_file(write_file_path, txt_list);
+                write_list_to_file(write_file_path, txt_list);
                 printf("\n have written!\n\n");
                 config_map.clear();
                 temple_list.remove_if([](auto it){return true;});
