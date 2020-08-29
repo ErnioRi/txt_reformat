@@ -87,7 +87,6 @@ int main(int opt, char** content){
         // ¼ì²é¹Ø¼ü×Ö
         int find_flag = 0;
         for(auto it_key : config_key){
-            printf("start config! ");
             if(per_line.find(it_key.first) != string::npos){
                 cout << it_key.first << endl;
                 config_key[it_key.first] = per_line.substr(it_key.first.length()+1);
@@ -152,6 +151,8 @@ int main(int opt, char** content){
                 continue;
 
             }else if(per_line.find(config_key[config_flag]) == 0){
+                config_map.clear();
+                temple_list.clear();
                 per_line = per_line.substr(config_key[config_flag].length());
                 list<string> tr_config_list = wtrsplit_string(per_line, config_key[config_content_split]);
                 for(auto it_config : tr_config_list){
@@ -187,8 +188,6 @@ int main(int opt, char** content){
                 printf("\n have filt!\n\n");
                 write_list_to_file(write_file_path, txt_list);
                 printf("\n have written!\n\n");
-                config_map.clear();
-                temple_list.remove_if([](auto it){return true;});
 
             }else{
                 auto pos = string::npos;
@@ -206,8 +205,10 @@ int main(int opt, char** content){
             }
         }
         op.close();
+        config_map.clear();
+        temple_list.clear();
     }
-    printf("finish work, press any key to continue:");
+    printf("finish work, press enter to continue:");
     char end_char = getchar();
     return 0;
 }
