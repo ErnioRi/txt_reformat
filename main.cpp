@@ -164,10 +164,9 @@ int main(int opt, char** content){
                 string file_model = "flush";
                 auto pos_start = string::npos;
                 auto pos_end = string::npos;
-
                 if((pos_start = per_line.find(config_key[file_model_start])) != string::npos){
                     if((pos_end = per_line.find(config_key[file_model_end])) != string::npos){
-                        auto tr_start = pos_start + config_key[file_model_end].length();
+                        auto tr_start = pos_start + config_key[file_model_start].length();
                         file_model = per_line.substr(tr_start, pos_end-tr_start);
                         cout<< "file_model: " << file_model << endl;
                         per_line = per_line.substr(0,pos_start) + per_line.substr(pos_end+config_key[file_model_end].length());
