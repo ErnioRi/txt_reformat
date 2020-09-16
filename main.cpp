@@ -180,15 +180,22 @@ int main(int opt, char** content){
                 string write_file_path = per_line;
                 printf("\n start fill\n\n");
                 list<string> txt_list;
+                int add_flag = 0;
+                if(file_model[0] == 'a'){
+                    file_model = file_model.substr(1);
+                    add_flag = 1;
+                }
                 if(file_model == "flush"){
                     txt_list = flush_fill_list(config_map, txt_template_list);
 
                 }else if(file_model == "cluster"){
                     txt_list = cluster_fill_list(config_map, txt_template_list);
 
+                }else{
+                    printf("unknown file model\n");
                 }
                 printf("\n have filt!\n\n");
-                write_list_to_file(write_file_path, txt_list);
+                write_list_to_file(write_file_path, txt_list, add_flag);
                 printf("\n have written!\n\n");
 
             }else{

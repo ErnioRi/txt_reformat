@@ -12,7 +12,7 @@ list<string> wtrsplit_string(string src, string key);
 
 void wtrget_kv_info(map<string, list<string>>& dst, string src, infoFormat info_format);
 
-void write_list_to_file(string filepath, list<string> cmd_list);
+void write_list_to_file(string filepath, list<string> cmd_list, int add_flag);
 
 list<string> flush_fill_list (map<string, list<string>> in_config_map, list<list<string>> in_temple_list);
 

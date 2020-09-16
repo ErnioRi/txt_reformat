@@ -32,9 +32,14 @@ void wtrget_kv_info(map<string, list<string>>& dst, string src, infoFormat info_
     }
 }
 
-void write_list_to_file(string filepath, list<string> cmd_list){
+void write_list_to_file(string filepath, list<string> cmd_list, int add_flag){
     fstream outfile;
-    outfile.open(filepath.c_str(), ios::out);   //每次写都定位的文件结尾，不会丢失原来的内容，用out则会丢失原来的内容
+    if(add_flag == 1){
+        outfile.open(filepath.c_str(), ios::app);   //每次写都定位的文件结尾，不会丢失原来的内容，用out则会丢失原来的内容
+    }
+    else{
+        outfile.open(filepath.c_str(), ios::out);   //每次写都定位的文件结尾，不会丢失原来的内容，用out则会丢失原来的内容
+    }
     if(!outfile.is_open ()){
         cout << "Open file failure : " << filepath << endl;
     }else{
