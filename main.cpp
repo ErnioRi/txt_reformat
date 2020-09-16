@@ -10,13 +10,14 @@ const string config_content_split = "config_content_split";
 const string config_kv_split = "config_kv_split";
 const string config_value_split = "config_value_split";
 const string changable_str = "changable_str";
-const string temple_kv_split = "temple_kv_split";
-const string temple_value_split = "temple_value_split";
+const string txt_template_kv_split = "txt_template_kv_split";
+const string txt_template_value_split = "txt_template_value_split";
 const string config_flag = "config_flag";
 const string comment_flag = "comment_flag";
 const string write_flag = "write_flag";
 const string file_model_start = "file_model_start";
 const string file_model_end = "file_model_end";
+const string clear_flag = "clear_flag";
 
 
 int main(int opt, char** content){
@@ -51,7 +52,7 @@ int main(int opt, char** content){
     char buffer[256];
     string per_line;
     map<string, list<string> > config_map;
-    list<list<string>> temple_list;
+    list<list<string>> txt_template_list;
     int line = 0;
     vector<string> file_path;
 
@@ -61,13 +62,14 @@ int main(int opt, char** content){
     config_key[config_kv_split] = "!!!";
     config_key[config_value_split] = "!!!";
     config_key[changable_str] = "!!!";
-    config_key[temple_kv_split] = "!!!";
-    config_key[temple_value_split] = "!!!";
+    config_key[txt_template_kv_split] = "!!!";
+    config_key[txt_template_value_split] = "!!!";
     config_key[config_flag] = "!!!";
     config_key[comment_flag] = "!!!";
     config_key[write_flag] = "!!!";
     config_key[file_model_start] = "!!!";
     config_key[file_model_end] = "!!!";
+    config_key[clear_flag] = "!!!";
 
     op.open("./config/base.txt",ios_base::in);
     if(!op.is_open ()){
@@ -123,7 +125,7 @@ int main(int opt, char** content){
     op.close();
     printf("end of file config\n");
     infoFormat config_info_format(config_key[config_kv_split], config_key[config_value_split]);
-    infoFormat temple_info_format(config_key[temple_kv_split], config_key[temple_value_split]);
+    infoFormat txt_template_info_format(config_key[txt_template_kv_split], config_key[txt_template_value_split]);
     for( auto it : file_path){
         op.open(it,ios_base::in);
         if(!op.is_open ()){
@@ -151,23 +153,23 @@ int main(int opt, char** content){
                 continue;
 
             }else if(per_line.find(config_key[config_flag]) == 0){
-                config_map.clear();
-                temple_list.clear();
                 per_line = per_line.substr(config_key[config_flag].length());
                 list<string> tr_config_list = wtrsplit_string(per_line, config_key[config_content_split]);
                 for(auto it_config : tr_config_list){
                     wtrget_kv_info(config_map, it_config, config_info_format);
                 }
+            }else if(per_line.find(config_key[clear_flag]) == 0){
+                config_map.clear();
+                txt_template_list.clear();
 
             }else if(per_line.find(config_key[write_flag]) == 0){
                 per_line = per_line.substr(config_key[write_flag].length());
                 string file_model = "flush";
                 auto pos_start = string::npos;
                 auto pos_end = string::npos;
-
                 if((pos_start = per_line.find(config_key[file_model_start])) != string::npos){
                     if((pos_end = per_line.find(config_key[file_model_end])) != string::npos){
-                        auto tr_start = pos_start + config_key[file_model_end].length();
+                        auto tr_start = pos_start + config_key[file_model_start].length();
                         file_model = per_line.substr(tr_start, pos_end-tr_start);
                         cout<< "file_model: " << file_model << endl;
                         per_line = per_line.substr(0,pos_start) + per_line.substr(pos_end+config_key[file_model_end].length());
@@ -179,10 +181,10 @@ int main(int opt, char** content){
                 printf("\n start fill\n\n");
                 list<string> txt_list;
                 if(file_model == "flush"){
-                    txt_list = flush_fill_list(config_map, temple_list);
+                    txt_list = flush_fill_list(config_map, txt_template_list);
 
                 }else if(file_model == "cluster"){
-                    txt_list = cluster_fill_list(config_map, temple_list);
+                    txt_list = cluster_fill_list(config_map, txt_template_list);
 
                 }
                 printf("\n have filt!\n\n");
@@ -193,20 +195,20 @@ int main(int opt, char** content){
                 auto pos = string::npos;
                 list<string> value_tr;
                 list<string> value;
-                if((pos = per_line.find(temple_info_format.kv_split)) != string::npos){
+                if((pos = per_line.find(txt_template_info_format.kv_split)) != string::npos){
                     value_tr.push_back(per_line.substr(0, pos));
-                    per_line = per_line.substr(pos + temple_info_format.kv_split.length());
-                    value = wtrsplit_string(per_line, temple_info_format.value_split);
+                    per_line = per_line.substr(pos + txt_template_info_format.kv_split.length());
+                    value = wtrsplit_string(per_line, txt_template_info_format.value_split);
                     for(auto it : value){
                         value_tr.push_back(it);
                     }
-                    temple_list.push_back(value_tr);
+                    txt_template_list.push_back(value_tr);
                 }
             }
         }
         op.close();
         config_map.clear();
-        temple_list.clear();
+        txt_template_list.clear();
     }
     printf("finish work, press enter to continue:");
     char end_char = getchar();

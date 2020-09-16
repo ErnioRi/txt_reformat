@@ -1,11 +1,12 @@
 #include "new_method.h"
 
-int wtrsprintf(string& temple, string param){
-    auto position = temple.find("#");
+int wtrsprintf(string& temple, string param, int last_pos){
+    auto position = temple.find("#", last_pos);
     if(position != string::npos){
         temple = temple.substr(0,position) + param + temple.substr(position + 1);
     }
-    return 0;
+    last_pos = position+1;
+    return last_pos;
 }
 
 list<string> wtrsplit_string(string src, string key){
@@ -107,12 +108,13 @@ list<string> flush_fill_list (map<string, list<string>> in_config_map, list<list
             int up_flag = 0;
 
             // 根据指针拼接一次temple
+            int last_pos = 0;
             for(int i = 1;i < it_temple.length;i ++){
                 string key = it_temple.data[i];
                 if(config_map.find(key) != config_map.end()){
-                    wtrsprintf(tr_res, config_map[key].data[config_ptr[key]]);
+                    last_pos = wtrsprintf(tr_res, config_map[key].data[config_ptr[key]], last_pos);
                 }else{
-                    wtrsprintf(tr_res, key);
+                    last_pos = wtrsprintf(tr_res, key, last_pos);
                 }
             }
 
@@ -215,12 +217,13 @@ list<string> cluster_fill_list (map<string, list<string>> in_config_map, list<li
                 string tr_res = it_temple.data[0];
 
                 // 根据指针拼接一次temple
+                int last_pos = 0;
                 for(int i = 1;i < it_temple.length;i ++){
                     string key = it_temple.data[i];
                     if(config_map.find(key) != config_map.end()){
-                        wtrsprintf(tr_res, config_map[key].data[config_ptr[key]]);
+                        last_pos = wtrsprintf(tr_res, config_map[key].data[config_ptr[key]], last_pos);
                     }else{
-                        wtrsprintf(tr_res, key);
+                        last_pos = wtrsprintf(tr_res, key,last_pos);
                     }
                 }
                 cout << "result line: " << tr_res << endl;
