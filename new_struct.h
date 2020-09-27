@@ -17,9 +17,20 @@ struct configInfo{
 class infoFormat{
 public:
     string kv_split;
-    string value_split;infoFormat(string in_kv_split,string in_value_split)
+    string value_split;
+    string sub_start;
+    string sub_end;
+    string sub_split;
+    infoFormat(string in_kv_split,
+               string in_value_split,
+               string in_sub_start = "!!!",
+               string in_sub_end = "!!!",
+               string in_sub_split = "!!!")
         :kv_split(in_kv_split)
         ,value_split(in_value_split)
+        ,sub_start(in_sub_start)
+        ,sub_end(in_sub_end)
+        ,sub_split(in_sub_split)
     {}
     ~infoFormat(){}
 };

@@ -6,19 +6,18 @@
 using namespace std;
 //-d -s -a
 
-const string config_content_split = "config_content_split";
-const string config_kv_split = "config_kv_split";
-const string config_value_split = "config_value_split";
-const string changable_str = "changable_str";
-const string txt_template_kv_split = "txt_template_kv_split";
-const string txt_template_value_split = "txt_template_value_split";
-const string config_flag = "config_flag";
-const string comment_flag = "comment_flag";
-const string write_flag = "write_flag";
-const string file_model_start = "file_model_start";
-const string file_model_end = "file_model_end";
-const string clear_flag = "clear_flag";
 
+string delete_tab(string src){
+    auto position = src.find('\t');
+    while(true){
+        if(position == string::npos){
+            break;
+        }
+        src = src.substr(0,position) + src.substr(position + 1);
+        position = src.find("\t", position);
+    }
+    return src;
+}
 
 int main(int opt, char** content){
     // attention
@@ -53,7 +52,6 @@ int main(int opt, char** content){
     string per_line;
     map<string, list<string> > config_map;
     list<list<string>> txt_template_list;
-    int line = 0;
     vector<string> file_path;
 
     // config key
@@ -70,6 +68,9 @@ int main(int opt, char** content){
     config_key[file_model_start] = "!!!";
     config_key[file_model_end] = "!!!";
     config_key[clear_flag] = "!!!";
+    config_key[config_sub_flag_start] = "!!!";
+    config_key[config_sub_flag_end] = "!!!";
+    config_key[config_sub_split] = "!!!";
 
     op.open("./config/base.txt",ios_base::in);
     if(!op.is_open ()){
@@ -78,20 +79,12 @@ int main(int opt, char** content){
     while(!op.eof()){
         op.getline(buffer,256,'\n');
         per_line = buffer;
-        while(true){
-            auto position = per_line.find("\t");
-            if(position != string::npos){
-                per_line = per_line.substr(0,position) + per_line.substr(position + 1);
-            }else{
-                break;
-            }
-        }
+        delete_tab(per_line);
         // 检查关键字
         int find_flag = 0;
         for(auto it_key : config_key){
             if(per_line.find(it_key.first) != string::npos){
-                cout << it_key.first << endl;
-                config_key[it_key.first] = per_line.substr(it_key.first.length()+1);
+                config_key[it_key.first] = per_line.substr(it_key.first.length());
                 find_flag = 1;
                 break;
             }
@@ -103,7 +96,6 @@ int main(int opt, char** content){
 
     }
     op.close();
-    printf("end of key config\n");
     op.open("./config/config_files.txt",ios_base::in);
     if(!op.is_open ()){
         cout << "Open config file failure" << endl;
@@ -111,27 +103,26 @@ int main(int opt, char** content){
     while(!op.eof()){
         op.getline(buffer,256,'\n');
         per_line = buffer;
-        while(true){
-            auto position = per_line.find("\t");
-            if(position != string::npos){
-                per_line = per_line.substr(0,position) + per_line.substr(position + 1);
-            }else{
-                break;
-            }
-        }
-
+        delete_tab(per_line);
         file_path.push_back(per_line);
     }
     op.close();
-    printf("end of file config\n");
-    infoFormat config_info_format(config_key[config_kv_split], config_key[config_value_split]);
-    infoFormat txt_template_info_format(config_key[txt_template_kv_split], config_key[txt_template_value_split]);
+    infoFormat config_info_format(config_key[config_kv_split],
+                                  config_key[config_value_split],
+                                  config_key[config_sub_flag_start],
+                                  config_key[config_sub_flag_end],
+                                  config_key[config_sub_split]);
+
+    infoFormat txt_template_info_format(config_key[txt_template_kv_split],
+                                        config_key[txt_template_value_split]);
+
     for( auto it : file_path){
         op.open(it,ios_base::in);
         if(!op.is_open ()){
             cout << "Open user file failure : " << it << endl;
         }
         cout << "file path: " << it << endl;
+        int line = 0;
         while(!op.eof()){
             line++;
             printf("in line: %d\n", line);
@@ -140,73 +131,62 @@ int main(int opt, char** content){
             per_line = buffer;
 
             // 清理\t
-            while(true){
-                auto position = per_line.find("\t");
-                if(position != string::npos){
-                    per_line = per_line.substr(0,position) + per_line.substr(position + 1);
-                }else{
-                    break;
-                }
-            }
+            delete_tab(per_line);
+
             // 检查关键字
-            if(per_line.find(config_key[comment_flag]) == 0){
+            cout << config_key[config_flag] << endl;
+            printf("config :%d\n", per_line.find(config_key[config_flag]));
+            if(per_line.find(config_key[comment_flag]) == 0){// 注释
                 continue;
 
-            }else if(per_line.find(config_key[config_flag]) == 0){
+            }else if(per_line.find(config_key[config_flag]) == 0){// 配置行
                 per_line = per_line.substr(config_key[config_flag].length());
                 list<string> tr_config_list = wtrsplit_string(per_line, config_key[config_content_split]);
                 for(auto it_config : tr_config_list){
                     wtrget_kv_info(config_map, it_config, config_info_format);
                 }
-            }else if(per_line.find(config_key[clear_flag]) == 0){
+            }else if(per_line.find(config_key[clear_flag]) == 0){// 清除缓存
                 config_map.clear();
                 txt_template_list.clear();
 
-            }else if(per_line.find(config_key[write_flag]) == 0){
+            }else if(per_line.find(config_key[write_flag]) == 0){// 写文件
                 per_line = per_line.substr(config_key[write_flag].length());
-                string file_model = "flush";
-                auto pos_start = string::npos;
-                auto pos_end = string::npos;
-                if((pos_start = per_line.find(config_key[file_model_start])) != string::npos){
-                    if((pos_end = per_line.find(config_key[file_model_end])) != string::npos){
-                        auto tr_start = pos_start + config_key[file_model_start].length();
-                        file_model = per_line.substr(tr_start, pos_end-tr_start);
-                        cout<< "file_model: " << file_model << endl;
-                        per_line = per_line.substr(0,pos_start) + per_line.substr(pos_end+config_key[file_model_end].length());
-                    }
-                }
 
-                cout<< "per_line1: " << per_line.substr(0,pos_start) << endl;
-                string write_file_path = per_line;
-                printf("\n start fill\n\n");
-                list<string> txt_list;
+                // 文件模式检查
+                string file_model = get_value_in_pattern(config_key[file_model_start], config_key[file_model_end], per_line);
+                if(file_model == "*none*"){
+                    file_model = "flush";
+                }
+                cout<< "file_model: " << file_model << endl;
+
                 int add_flag = 0;
                 if(file_model[0] == 'a'){
                     file_model = file_model.substr(1);
                     add_flag = 1;
                 }
                 if(file_model == "flush"){
-                    txt_list = flush_fill_list(config_map, txt_template_list);
+                    write_list_to_file(per_line, move(flush_fill_list(config_map, txt_template_list, config_key)), add_flag);
 
                 }else if(file_model == "cluster"){
-                    txt_list = cluster_fill_list(config_map, txt_template_list);
+                    write_list_to_file(per_line, move(cluster_fill_list(config_map, txt_template_list, config_key)), add_flag);
 
                 }else{
                     printf("unknown file model\n");
-                }
-                printf("\n have filt!\n\n");
-                write_list_to_file(write_file_path, txt_list, add_flag);
-                printf("\n have written!\n\n");
 
-            }else{
+                }
+            }else{// 视为template
                 auto pos = string::npos;
                 list<string> value_tr;
                 list<string> value;
                 if((pos = per_line.find(txt_template_info_format.kv_split)) != string::npos){
+                    printf("in else\n");
                     value_tr.push_back(per_line.substr(0, pos));
                     per_line = per_line.substr(pos + txt_template_info_format.kv_split.length());
+                    printf("pos: %d\n", pos);
                     value = wtrsplit_string(per_line, txt_template_info_format.value_split);
+                    int sss = 0;
                     for(auto it : value){
+                        printf("%d\n", sss);
                         value_tr.push_back(it);
                     }
                     txt_template_list.push_back(value_tr);
